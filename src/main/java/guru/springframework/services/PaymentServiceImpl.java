@@ -17,8 +17,10 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class PaymentServiceImpl implements PaymentService {
 	public static final String PAYMENT_ID_HEADER = "payment_id";
+	
 	private final PaymentRepository paymentRepository;
 	private final StateMachineFactory<PaymentState, PaymentEvent> stateMachineFactory;
+	private final PaymentStateChangeInterceptor paymentStateChangeInterceptor; 
 
 
 	@Override
@@ -66,6 +68,7 @@ public class PaymentServiceImpl implements PaymentService {
 		// sets it to status from database
 		sm.getStateMachineAccessor()
 			.doWithAllRegions(sma -> {
+				sma.addStateMachineInterceptor(paymentStateChangeInterceptor);
 				sma.resetStateMachine(new DefaultStateMachineContext<>(payment.getState(), null, null, null));
 			});
 		
