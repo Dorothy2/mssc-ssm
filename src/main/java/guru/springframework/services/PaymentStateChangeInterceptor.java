@@ -34,7 +34,10 @@ public class PaymentStateChangeInterceptor extends StateMachineInterceptorAdapte
 		    .ifPresent(paymentId -> {
 		    	// fetch payment from db
 		    	Payment payment =  paymentRepository.getOne(paymentId);
+		    	System.out.println("State before: " + payment.getState());
+		    	System.out.println("State argument: " + state.getId());
 		    	payment.setState(state.getId());
+		    	System.out.println("State after: " + payment.getState());
 		    	// update payment status
 		    	paymentRepository.save(payment);
 		    });
