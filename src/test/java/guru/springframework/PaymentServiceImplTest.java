@@ -7,6 +7,7 @@ import java.math.BigDecimal;
 import javax.transaction.Transactional;
 
 import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.RepeatedTest;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -46,11 +47,34 @@ class PaymentServiceImplTest {
 		StateMachine<PaymentState, PaymentEvent> sm = paymentService.preAuth(savedPayment.getId());
 		Payment preAuthedPayment = paymentRepository.getOne(savedPayment.getId());
 		
-		System.out.println("Should be PRE-AUTH");
+		System.out.println("Should be PRE_AUTH or PRE_AUTH_ERROR");
 		System.out.println(sm.getState().getId());
 		System.out.println(preAuthedPayment);
 		
 		
+	}
+	
+	@Transactional
+	@Test
+	@RepeatedTest(10)
+	void testAuth() {
+		Payment savedPayment = paymentService.newPayment(payment);
+		StateMachine<PaymentState, PaymentEvent> sm = paymentService.preAuth(savedPayment.getId());
+		Payment preAuthedPayment = paymentRepository.getOne(savedPayment.getId());
+
+		if (sm.getState().getId() == PaymentState.PRE_AUTH) {
+			System.out.println("Should be PRE_AUTH");
+			System.out.println(savedPayment.getState());
+			sm = paymentService.authorizePayment(savedPayment.getId());
+			Payment authedPayment = paymentRepository.getOne(preAuthedPayment.getId());
+
+			System.out.println("Should be AUTH_APPROVED or AUTH_DECLINED");
+			System.out.println(sm.getState().getId());
+			System.out.println(authedPayment);
+		} else {
+			System.out.println("Payment failed PRE-AUTH.");
+		}
+
 	}
 
 }
